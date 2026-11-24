@@ -153,3 +153,10 @@ GROQ_MODEL = os.getenv(
 )
 LLM_TEMPERATURE = 0.1
 RAG_TOP_K = 4
+
+# Reranking Settings
+
+RERANKER_MODEL = (
+    'cross-encoder/mmarco-mMiniLMv2-L12-H384-v1'
+)
+RETRIEVAL_TOP_K = 10
