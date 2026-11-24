@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'documents.apps.DocumentsConfig',
     'django_cleanup.apps.CleanupConfig',
     'qa.apps.QaConfig',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -160,3 +161,17 @@ RERANKER_MODEL = (
     'cross-encoder/mmarco-mMiniLMv2-L12-H384-v1'
 )
 RETRIEVAL_TOP_K = 10
+
+
+# REST Framework Settings
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAdminUser',
+    ],
+}
