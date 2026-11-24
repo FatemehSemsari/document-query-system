@@ -50,7 +50,7 @@ RAG_PROMPT = ChatPromptTemplate.from_messages([
 
         {context}
 
-        --------------------
+        -----------------------------
 
         سؤال کاربر:
 
