@@ -1,18 +1,18 @@
-# Document Query System
+# سامانه پرسش از اسناد (Document Query System)
 
-A Django-based document question-answering application using Retrieval-Augmented Generation (RAG). Administrators can upload DOCX files, retrieve relevant passages, ask questions in natural language, and view question-answer history. The application supports Persian text and runs locally through Docker Compose.
+این پروژه یک سامانه پرسش و پاسخ از اسناد مبتنی بر Django است که از معماری تولید پاسخ با کمک بازیابی اطلاعات (RAG) استفاده می‌کند. مدیران سامانه می‌توانند فایل‌های DOCX را بارگذاری کنند، بخش‌های مرتبط اسناد را بازیابی کنند، به زبان طبیعی سؤال بپرسند و تاریخچه پرسش‌ها و پاسخ‌ها را مشاهده کنند. سامانه از متن فارسی پشتیبانی می‌کند و به‌صورت محلی با Docker Compose قابل اجرا است.
 
-## Features
+## قابلیت‌های سامانه
 
-- DOCX upload, validation, editing and deletion through Django Admin and REST API.
-- Automatic extraction and storage of document body text, including paragraphs and tables.
-- Semantic retrieval with multilingual E5 embeddings and persistent ChromaDB storage.
-- Two-stage retrieval using a multilingual cross-encoder reranker.
-- LangChain prompt and generation pipeline with Groq; answers are instructed to use retrieved document content and cite numbered sources.
-- Persistent question-answer history, including user, timestamp and retrieval metadata.
-- Django Admin interface for document management and question-answer history, plus a question form if enabled in the admin configuration.
+- افزودن، اعتبارسنجی، ویرایش و حذف فایل‌های DOCX از طریق Django Admin و REST API.
+- استخراج و ذخیره خودکار متن بدنه اسناد، شامل پاراگراف‌ها و جدول‌ها.
+- بازیابی معنایی با استفاده از مدل بردارسازی چندزبانه E5 و ذخیره دائمی بردارها در ChromaDB.
+- بازیابی دومرحله‌ای اسناد با استفاده از مدل چندزبانه Cross-Encoder برای رتبه‌بندی مجدد (Reranking).
+- طراحی جریان پردازش و تولید پاسخ با LangChain و Groq؛ مدل زبانی موظف است بر اساس محتوای بازیابی‌شده پاسخ دهد و شماره منابع را ذکر کند.
+- ذخیره دائمی تاریخچه پرسش‌ها و پاسخ‌ها، شامل کاربر، زمان ثبت و اطلاعات بازیابی منابع.
+- رابط کاربری Django Admin برای مدیریت اسناد و مشاهده تاریخچه، به همراه فرم پرسیدن سؤال در صورت فعال بودن آن در تنظیمات پنل مدیریت.
 
-## Architecture
+## معماری سامانه
 
 ```text
 DOCX -> Text extraction -> SQLite (full text)
@@ -22,47 +22,62 @@ Question -> Semantic search -> Cross-encoder reranking
          -> SQLite history -> Django Admin / REST API
 ```
 
-| Component | Technology |
+| بخش | فناوری مورد استفاده |
 | --- | --- |
-| Backend / UI | Django / Django Admin |
-| REST API | Django REST Framework |
-| Relational database | SQLite |
-| Text extraction | python-docx |
-| Pipeline | LangChain |
-| Embeddings | intfloat/multilingual-e5-small |
-| Vector index | ChromaDB |
-| Reranker | cross-encoder/mmarco-mMiniLMv2-L12-H384-v1 |
-| Generation | Groq (model configurable via GROQ_MODEL) |
-| Runtime | Docker Compose, Python 3.12, CPU PyTorch |
+| بک‌اند و رابط کاربری | Django / Django Admin |
+| رابط برنامه‌نویسی | Django REST Framework |
+| پایگاه داده رابطه‌ای | SQLite |
+| استخراج متن | python-docx |
+| جریان پردازش | LangChain |
+| مدل بردارسازی (Embedding) | `intfloat/multilingual-e5-small` |
+| پایگاه داده برداری | ChromaDB |
+| مدل رتبه‌بندی مجدد | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` |
+| تولید پاسخ | Groq (مدل قابل تنظیم با `GROQ_MODEL`) |
+| محیط اجرا | Docker Compose، Python 3.12 و نسخه CPU کتابخانه PyTorch |
 
-## Run with Docker (recommended)
+## راه‌اندازی با Docker (روش پیشنهادی)
 
-### Prerequisites
+### پیش‌نیازها
 
-- Docker with Compose v2 (for example, Docker Desktop).
-- Internet access to download the base image, dependencies and Hugging Face models, and to call Groq.
-- A Groq API key from https://console.groq.com/keys.
-- Sufficient disk space and RAM for the local CPU models.
+- Docker به همراه Compose نسخه ۲ (برای مثال Docker Desktop).
+- اتصال اینترنت برای دریافت ایمیج پایه، وابستگی‌ها و مدل‌های Hugging Face و همچنین ارسال درخواست به Groq.
+- کلید API سرویس Groq از [صفحه ساخت کلید](https://console.groq.com/keys).
+- فضای ذخیره‌سازی و حافظه RAM کافی برای اجرای مدل‌های محلی روی CPU.
 
-### 1. Configure environment variables
+### ۱. تنظیم متغیرهای محیطی
 
-In the directory containing `manage.py` and `docker-compose.yml`, copy `.env.example` to `.env`.
+در پوشه‌ای که فایل‌های `manage.py` و `docker-compose.yml` قرار دارند، یک کپی از فایل `.env.example` با نام `.env` ایجاد کنید.
 
-PowerShell:
+در PowerShell ویندوز:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Linux/macOS:
+در Linux یا macOS:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env`. Set `GROQ_API_KEY` to your own key, `GROQ_MODEL` to the supported Groq model configured in the project, `DJANGO_SECRET_KEY` to a fresh random secret, and `DJANGO_DEBUG=True` for local development. A secret can be generated with `python -c "import secrets; print(secrets.token_hex(32))"` if Python is installed. Do not commit or distribute `.env`. Keep the model ID configurable; provider availability and quotas can change.
+فایل `.env` را باز کرده و مقادیر زیر را تنظیم کنید:
 
-### 2. Build and start
+| متغیر | توضیحات |
+| --- | --- |
+| `GROQ_API_KEY` | کلید شخصی API سرویس Groq |
+| `GROQ_MODEL` | شناسه مدل پشتیبانی‌شده Groq که برای پروژه تنظیم شده است |
+| `DJANGO_SECRET_KEY` | یک کلید محرمانه تصادفی و جدید برای Django |
+| `DJANGO_DEBUG` | مقدار `True` برای اجرای محلی در محیط توسعه |
+
+در صورت نصب Python، می‌توانید کلید محرمانه Django را با دستور زیر تولید کنید:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+فایل `.env` را در Git ثبت نکنید و در اختیار دیگران قرار ندهید. شناسه مدل زبانی را قابل تنظیم نگه دارید، زیرا دسترسی به مدل‌ها و محدودیت مصرف سرویس ممکن است تغییر کند.
+
+### ۲. ساخت ایمیج و اجرای کانتینر
 
 ```bash
 docker compose config --quiet
@@ -70,31 +85,37 @@ docker compose up -d --build
 docker compose ps
 ```
 
-Database migrations are applied automatically on startup. Inspect logs with `docker compose logs -f web` if needed. The first build downloads Python dependencies; the first retrieval also downloads the embedding and reranking models.
+تغییرات ساختار پایگاه داده (Migrationها) هنگام راه‌اندازی به‌صورت خودکار اعمال می‌شوند. در صورت نیاز می‌توانید لاگ‌های برنامه را با دستور زیر مشاهده کنید:
 
-### 3. Create an administrator
+```bash
+docker compose logs -f web
+```
 
-For a fresh database, run:
+در اولین Build وابستگی‌های Python دانلود می‌شوند. همچنین در اولین عملیات بازیابی، مدل‌های Embedding و Reranker دانلود خواهند شد.
+
+### ۳. ایجاد حساب مدیر
+
+برای یک پایگاه داده تازه، دستور زیر را اجرا کنید:
 
 ```bash
 docker compose exec web python manage.py createsuperuser
 ```
 
-Enter a username and password of your choice. Do not include real credentials in the submission.
+نام کاربری و رمز عبور دلخواه خود را وارد کنید. اطلاعات واقعی ورود را در فایل تحویلی پروژه قرار ندهید.
 
-### 4. Use the application
+### ۴. استفاده از سامانه
 
-1. Open http://127.0.0.1:8000/admin/ and sign in as the administrator.
-2. In Documents, upload the DOCX files in `sample_data/`. Enter titles such as `company_rules`, `financial_rules`, and `training_rules`.
-3. Open a saved document and confirm that Full text contains the extracted text.
-4. Open http://127.0.0.1:8000/api/ask/ in the same signed-in browser, enter a question, and submit POST. If the custom Admin question form is enabled, questions can also be submitted via QA > Questions and Answers > Add.
-5. View history in Django Admin or at http://127.0.0.1:8000/api/history/.
+1. وارد [پنل مدیریت Django](http://127.0.0.1:8000/admin/) شوید و با حساب مدیر وارد سیستم شوید.
+2. در بخش Documents، فایل‌های DOCX موجود در پوشه `sample_data/` را بارگذاری کنید. برای عنوان اسناد می‌توانید از `company_rules`، `financial_rules` و `training_rules` استفاده کنید.
+3. یکی از اسناد ذخیره‌شده را باز کنید و بررسی کنید که متن استخراج‌شده در قسمت Full text نمایش داده شود.
+4. در همان مرورگری که وارد حساب مدیر شده‌اید، آدرس [API پرسش و پاسخ](http://127.0.0.1:8000/api/ask/) را باز کنید، سؤال خود را وارد کرده و با متد POST ارسال کنید. در صورت فعال بودن فرم اختصاصی پرسش در پنل مدیریت، از مسیر QA > Questions and Answers > Add نیز می‌توانید سؤال ثبت کنید.
+5. تاریخچه پرسش‌ها و پاسخ‌ها را در Django Admin یا از طریق [API تاریخچه](http://127.0.0.1:8000/api/history/) مشاهده کنید.
 
-A fresh Docker installation intentionally starts with an independent empty database. Sample documents must be uploaded manually; no local database is required or imported.
+نصب تازه پروژه با Docker عمداً با یک پایگاه داده خالی و مستقل آغاز می‌شود. اسناد نمونه باید به‌صورت دستی بارگذاری شوند و نیازی به انتقال یا استفاده از پایگاه داده محیط توسعه نیست.
 
-## Example questions
+## سؤال‌های نمونه برای تست
 
-| Question | Expected answer after uploading sample data |
+| سؤال | پاسخ مورد انتظار پس از بارگذاری داده‌های نمونه |
 | --- | --- |
 | کارکنان چند روز در سال مرخصی دارند؟ | ۲۶ روز مرخصی استحقاقی |
 | ساعات کاری شرکت چگونه است؟ | ۹ صبح تا ۵ عصر |
@@ -102,48 +123,66 @@ A fresh Docker installation intentionally starts with an independent empty datab
 | کارمندان سالانه چند ساعت آموزش می‌بینند؟ | ۴۰ ساعت |
 | پایتخت فرانسه کجاست؟ | اطلاعات کافی برای پاسخ به این سؤال در اسناد موجود نیست. |
 
-These are expected answers, not guaranteed exact model output. Source numbers depend on retrieval order.
+پاسخ‌های بالا نتایج مورد انتظار هستند و تضمینی برای یکسان بودن دقیق متن خروجی مدل نیستند. شماره منابع نیز به ترتیب بازیابی اسناد بستگی دارد.
 
-## API documentation
+## مستندات API
 
-See [docs/API.md](docs/API.md) for endpoints, authentication, examples, status codes and response formats.
+برای مشاهده فهرست Endpointها، روش احراز هویت، نمونه درخواست‌ها و پاسخ‌ها، کدهای وضعیت HTTP و ساختار خروجی‌ها به فایل [docs/API.md](docs/API.md) مراجعه کنید.
 
-## Data persistence and routine commands
+## ذخیره دائمی اطلاعات و دستورات کاربردی Docker
 
-| Storage | Purpose |
+| محل ذخیره‌سازی | کاربرد |
 | --- | --- |
-| `docker_data/db.sqlite3` | Users, documents and question-answer history |
-| `docker_data/media/` | Uploaded DOCX files |
-| `docker_data/chroma_db/` | Persistent vector index |
-| Docker named volume `model_cache` | Hugging Face model and tokenizer cache |
+| `docker_data/db.sqlite3` | اطلاعات کاربران، اسناد و تاریخچه پرسش و پاسخ |
+| `docker_data/media/` | فایل‌های DOCX بارگذاری‌شده |
+| `docker_data/chroma_db/` | نمایه برداری دائمی اسناد |
+| Docker Named Volume با نام `model_cache` | کش مدل‌ها و Tokenizerهای Hugging Face |
 
-The vector index is synchronized before retrieval; changed or deleted chunks are updated or removed during the next retrieval. `docker compose down` preserves the bind-mounted data and named cache volume.
+نمایه برداری پیش از عملیات بازیابی همگام‌سازی می‌شود. بخش‌های تغییرکرده یا حذف‌شده اسناد در بازیابی بعدی به‌روزرسانی یا حذف خواهند شد. دستور `docker compose down` داده‌های متصل از طریق Bind Mount و Volume کش مدل‌ها را حفظ می‌کند.
 
-```bash
-docker compose down          # Stop and remove containers
-docker compose up -d         # Start again using the existing image
-docker compose logs -f web   # Inspect application logs
-docker compose up -d --build # Rebuild after source changes
-```
+| دستور | کاربرد |
+| --- | --- |
+| `docker compose down` | توقف و حذف کانتینرها |
+| `docker compose up -d` | اجرای مجدد پروژه با ایمیج موجود |
+| `docker compose logs -f web` | مشاهده لاگ‌های برنامه |
+| `docker compose up -d --build` | ساخت مجدد ایمیج پس از تغییر کد منبع |
 
-Do not use `docker compose down -v` for normal shutdown: it removes the named model cache. Do not delete `docker_data/` unless you intend to remove stored application data.
+برای توقف معمولی پروژه از دستور `docker compose down -v` استفاده نکنید؛ این دستور Volume کش مدل‌ها را حذف می‌کند. پوشه `docker_data/` را نیز حذف نکنید، مگر اینکه قصد پاک کردن اطلاعات ذخیره‌شده سامانه را داشته باشید.
 
-## Project layout
+## ساختار پروژه
 
 ```text
-document_query_system/   Django settings and root URL configuration
-documents/               Document model, validation, extraction and retrieval
-qa/                      Groq integration, prompts, RAG, history and API
-docs/API.md              API documentation
-sample_data/             Fictional Persian DOCX fixtures
-screenshots/             Actual application screenshots
-Dockerfile               Container image definition
-docker-compose.yml       Service, environment and storage configuration
-requirements.txt         Local Python dependencies
-requirements-docker.txt  Docker Python dependencies
-.env.example             Example environment configuration
+document_query_system/
+documents/
+qa/
+docs/API.md
+sample_data/
+screenshots/
+Dockerfile
+docker-compose.yml
+requirements.txt
+requirements-docker.txt
+.env.example
 ```
 
-## Scope and limitations
+| فایل یا پوشه | کاربرد |
+| --- | --- |
+| `document_query_system/` | تنظیمات اصلی Django و مسیرهای اصلی URL |
+| `documents/` | مدل اسناد، اعتبارسنجی، استخراج متن و بازیابی اسناد |
+| `qa/` | ارتباط با Groq، Promptها، جریان RAG، تاریخچه و API |
+| `docs/API.md` | مستندات API |
+| `sample_data/` | فایل‌های DOCX نمونه فارسی با اطلاعات فرضی |
+| `screenshots/` | تصاویر واقعی از محیط سامانه |
+| `Dockerfile` | دستورالعمل ساخت ایمیج کانتینر |
+| `docker-compose.yml` | تنظیم سرویس، متغیرهای محیطی و فضای ذخیره‌سازی |
+| `requirements.txt` | وابستگی‌های Python برای محیط توسعه محلی |
+| `requirements-docker.txt` | وابستگی‌های Python برای محیط Docker |
+| `.env.example` | نمونه تنظیمات متغیرهای محیطی |
 
-This project is configured for local evaluation, not public production deployment. The Django development server and debug media serving should not be used for confidential documents or public internet exposure. Retrieved passages are sent to Groq for generation; use non-confidential data. The system extracts ordinary DOCX body paragraphs and tables, not all possible Word elements (such as text in images, footnotes or text boxes). Retrieval and model-generated answers can be imperfect; source metadata represents retrieved chunks, not verified citations. The first request may take longer while local models load. The vector index is intended for a small, single-process application.
+## محدوده و محدودیت‌های پروژه
+
+این پروژه برای اجرای محلی و ارزیابی طراحی شده است و برای استقرار عمومی در محیط عملیاتی (Production) پیکربندی نشده است. سرور توسعه Django و ارائه مستقیم فایل‌های Media در حالت Debug نباید برای اسناد محرمانه یا دسترسی عمومی از اینترنت استفاده شوند.
+
+بخش‌های بازیابی‌شده اسناد برای تولید پاسخ به سرویس Groq ارسال می‌شوند؛ بنابراین از داده‌های غیرمحرمانه استفاده کنید. سامانه متن پاراگراف‌ها و جدول‌های معمولی بدنه فایل DOCX را استخراج می‌کند و تمام عناصر ممکن Word، مانند متن داخل تصاویر، پاورقی‌ها یا کادرهای متنی، تحت پوشش نیستند.
+
+بازیابی اسناد و پاسخ‌های تولیدشده توسط مدل زبانی ممکن است دارای خطا باشند. اطلاعات منابع نشان‌دهنده بخش‌های بازیابی‌شده است و به معنی اعتبارسنجی قطعی ارجاعات مدل نیست. اولین درخواست ممکن است به دلیل بارگذاری مدل‌های محلی زمان بیشتری نیاز داشته باشد. نمایه برداری فعلی برای یک سامانه کوچک با اجرای تک‌پردازه طراحی شده است.
