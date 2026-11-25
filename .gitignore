@@ -1,9 +1,26 @@
+# Environment variables
 .env
+.env.*
+!.env.example
+
+# Virtual environment
 .venv/
 venv/
-.idea/
+
+# Python cache
 __pycache__/
 *.pyc
-db.sqlite3
+
+# IDE
+.idea/
+.vscode/
+
+# Database and generated data
+db.sqlite3*
 media/
 chroma_db/
+docker_data/
+
+# Other files
+*.log
+*.zip
