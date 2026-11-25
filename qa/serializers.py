@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from .models import QuestionAnswer
+
 
 class QuestionSerializer(serializers.Serializer):
 
@@ -9,3 +11,28 @@ class QuestionSerializer(serializers.Serializer):
         allow_blank=False,
         trim_whitespace=True
     )
+
+
+class QuestionAnswerSerializer(serializers.ModelSerializer):
+
+    username = serializers.CharField(
+        source='user.username',
+        read_only=True,
+        default=None
+    )
+
+    class Meta:
+
+        model = QuestionAnswer
+
+        fields = (
+            'id',
+            'user',
+            'username',
+            'question',
+            'answer',
+            'sources',
+            'created_at'
+        )
+
+        read_only_fields = fields

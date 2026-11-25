@@ -15,8 +15,18 @@ from rest_framework.response import Response
 
 from documents.retrieval import retrieve_documents
 
-from .serializers import QuestionSerializer
-from .rag_pipeline import answer_question
+from .serializers import (
+    QuestionSerializer,
+    QuestionAnswerSerializer
+)
+
+from .services import ask_and_save
+
+from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import SearchFilter
+
+from .models import QuestionAnswer
 
 
 logger = logging.getLogger(__name__)
@@ -37,7 +47,12 @@ class AskQuestionView(GenericAPIView):
         question = serializer.validated_data['question']
 
         try:
-            result = answer_question(question)
+            history = ask_and_save(
+                question=question,
+                user=request.user
+            )
+
+            result = QuestionAnswerSerializer(history).data
 
         except RateLimitError:
 
@@ -162,3 +177,29 @@ class SearchDocumentsView(GenericAPIView):
             'count': len(documents),
             'results': documents
         })
+
+
+class HistoryPagination(PageNumberPagination):
+
+    page_size = 20
+
+
+class QuestionAnswerViewSet(ReadOnlyModelViewSet):
+
+    queryset = (
+        QuestionAnswer.objects
+        .select_related('user')
+        .all()
+    )
+
+    serializer_class = QuestionAnswerSerializer
+
+    pagination_class = HistoryPagination
+
+    filter_backends = [SearchFilter]
+
+    search_fields = [
+        'question',
+        'answer',
+        'user__username'
+    ]
