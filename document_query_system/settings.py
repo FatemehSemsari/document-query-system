@@ -17,19 +17,32 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
+DATA_DIR = Path(
+    os.getenv('DJANGO_DATA_DIR', str(BASE_DIR))
+)
+
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z)%*%cox7l&hi*)pb*&(+)d@@sgnl1fmi2ohg2vc0_r24w0axb'
+SECRET_KEY = (
+    os.getenv('DJANGO_SECRET_KEY')
+    or 'django-insecure-local-development-only'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv(
+    'DJANGO_DEBUG', 'True'
+).lower() == 'true'
 
-ALLOWED_HOSTS = []
 
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1'
+]
 
 # Application definition
 
@@ -83,7 +96,7 @@ WSGI_APPLICATION = 'document_query_system.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DATA_DIR / 'db.sqlite3',
     }
 }
 
@@ -135,12 +148,12 @@ MAILERS = {
 }
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = DATA_DIR / 'media'
 
 # RAG Settings
 
 EMBEDDING_MODEL = 'intfloat/multilingual-e5-small'
-CHROMA_DB_PATH = BASE_DIR / 'chroma_db'
+CHROMA_DB_PATH = DATA_DIR / 'chroma_db'
 CHROMA_COLLECTION_NAME = 'document_chunks_v1'
 CHUNK_SIZE = 100
 CHUNK_OVERLAP = 20
